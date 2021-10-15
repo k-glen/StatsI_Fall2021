@@ -1,0 +1,919 @@
+---
+title: "PS02"
+author: "kg"
+date: "10/13/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Copying set up from template given in first Problem Set
+```{r}
+# remove objects
+rm(list=ls())
+
+# set working directory
+#setwd("~/Documents/GitHub/QTM200Spring2021/problem_sets/PS1")
+setwd("/Users/Kate/Desktop/Hacker/StatsI_Fall2021-main/problemSets/PS02")
+```
+
+Q1(a)
+(a) Calculate the χ2 test statistic by hand (even better if you can do ”by hand” in R).
+
+Calculate Chi sq satistic by hand in R
+
+Null hypothesis = upper class bribes = lower class bribes
+Alternative hypothesis = upper class bribes not equal lower class bribes
+
+Overall number of observations = 42
+Need to determine Fe = row total/grand total multiplied by column total
+Upper class Fe: 
+```{r}
+((14+6+7) * (6+7) / (42))
+```
+```{r}
+UFe=8.36
+```
+Upper class Fexpected=8.36
+
+Lower class Fe:
+```{r}
+((7+7+1) *  (6+7) /(42))
+```
+Lower class Fexpected=4.64
+
+Upper class Fobserved= 6
+Lower class Fobserved = 7
+```{r}
+UFe=8.36
+UFo=6
+LFe=4.64
+LFo=7
+```
+Chi sq stat = sum of (fo-fe)^2 /  fe
+Check upper class chi and lower class chi, then add together
+
+Chi Upper class:
+```{r}
+(UFo-UFe)^2/UFe
+```
+ChiU= 0.6662201
+
+Chi Lower class: 
+```{r}
+(LFo-LFe)^2/LFe
+```
+Sum= 1.200345
+
+To get the chi statistic
+
+```{r}
+0.6662201 +1.200345
+```
+
+ANSWER: 1.866565
+
+
+
+Q1(b)
+(b) Now calculate the p-value from the test statistic you just created (in R).2 What do you conclude if α = .1?
+
+Calculate p-value, alpha = .1
+pchisq
+df = (rows-1)(columns-1),
+2 rows, 3 columns 
+```{r}
+degreesf= (3-1)*(2-1)
+degreesf
+```
+Calculate the p-value in R using the method from the slides
+
+```{r}
+pval=pchisq(1.866565, df=2, lower.tail=FALSE)
+pval
+```
+P-value = 0.3932607. Alpha value = .1
+
+Since the p-value is considerably higher than the alpha value, we cannot reject the null hypothesis. 
+
+This means that in this study there was no real difference between the number of bribes offered to upper class and lower class participants by police at traffic stops. This study suggests that officers were not any more or less likely to solicit bribes depending on class. 
+
+Q1(c)
+(c) Calculate the standardized residuals for each cell and put them in the table below.
+
+Need to create the table in R before finding the standardised residuals of each cell
+
+Below blueprint found on statology to create a table in R: 
+
+tab <- matrix(c(7, 5, 14, 19, 3, 2, 17, 6, 12), ncol=3, byrow=TRUE)
+colnames(tab) <- c('colName1','colName2','colName3')
+rownames(tab) <- c('rowName1','rowName2','rowName3')
+tab <- as.table(tab)
+
+```{r}
+table <- matrix(c(14,6,7,7,7,1), ncol=3, byrow=TRUE)
+colnames(table) <- c('Not Stopped', 'Bribe requested', 'Stopped/Given warning')
+rownames(table) <- c('Upper Class', 'Lower Class')
+table <- as.table(table)
+table
+```
+Recreated the table from the assignment in R. 
+
+
+To calculate the standardised residuals I need the Fe and the Fo of every cell. 
+Fe = row total/grand total * column total
+```{r}
+UCTotal= 14+6+7
+LCTotal=7+7+1
+GrandTot= 42
+
+#Upper Class Fes
+FeUNS= UCTotal/GrandTot * (14+7) #13.5
+FeUBR= UCTotal/GrandTot * (6+7) #8.357
+FeUSG= UCTotal/GrandTot * (7+1) #5.143
+
+#Upper Class Fos
+FoUNS= 14
+FoUBR= 6
+FoUSG= 7
+
+#Lower Class Fes
+FeLNS= LCTotal/GrandTot * (14+7) #7.5
+FeLBR= LCTotal/GrandTot * (6+7) #4.643
+FeLSG= LCTotal/GrandTot * (1+7) #2.857
+
+#Lower Class Fos
+FoLNS= 7
+FoLBR= 7
+FoLSG= 1
+```
+I have calculated the Fe and Fo of every cell using the above code. Now I plug that information into the formula for standardised residuals given in the lecture.
+
+z = fo-fe/se
+
+The se is the square root of fe(1-row.prop.)(1-column.prop.)
+
+Based on the information in the slides the: 
+Row.prop. = row total / grand total 
+Column prop = column total / grand total
+
+Now I need to calculate Z for every cell in the table
+
+```{r}
+#Upper class: 
+
+#ZUNS
+(FoUNS- FeUNS)
+#0.5
+
+#ZUNS=.5/sqrt(13.5*((1-UCTotal/GrandTot)*(1-(14+7)))
+```
+I have tried a lot to get R to do this sum and even when it accepts the code it won't show me the answer to the sum, so I have to do this sum by hand and input the details. 
+
+Is there a simpler way to do this in R that you could show us in class?
+
+The answer keeps coming up as error on calculator or undefined, the maths appears to be tripping up at the square root, so I am going to try find a function in r that willl make this work.
+
+Second Attempt: 
+Create regression model, find standardised residuals through thtat using instructions found on statology.org
+
+Regression model using table from above 
+
+This did not work:
+model<- lm(Upper Class ~ Lower Class, data=table)
+summary(model)
+
+Trying again by creating the table as a dataset
+```{r}
+bribes <- data.frame(x=c(14,6,7),
+                     y=c(7,7,1))
+bribes
+```
+Fit regression model
+```{r}
+model<- lm(y~x, data=bribes)
+summary(model)
+```
+Calculate the standardised residuals using rstandard()
+
+```{r}
+stand.res<- rstandard(model)
+stand.res
+```
+
+This is odd, as it only gives my three standardised residuals when there should be six. I will try and plot it out to visualise the problem. 
+
+```{r}
+Final_stand.res<- cbind(bribes, stand.res)
+Final_stand.res
+
+library(ggplot2)
+ggplot(aes(x, stand.res), data = Final_stand.res) +
+  geom_point(alpha = 0.2)
+
+ggplot(aes(stand.res, y), data = Final_stand.res) +
+  geom_point(alpha = 0.2)
+```
+plotting out the problem did not get me any further
+
+The below code is from r-tutor.com
+```{r}
+bribes.lm=lm(x~y, data=bribes)
+bribes.stdres=rstandard(bribes.lm)
+twobribes.lm=lm(y~x, data=bribes)
+twobribes.stdres=rstandard(twobribes.lm)
+
+plot(twobribes.stdres, bribes.stdres,
+     ylab="X Standardised Residuals",
+     xlab= "Y Standardised Residuals",
+     main= "Standrardised Residuals")
+```
+This also did not make anything any clearer
+Trying again but with two tables 
+```{r}
+UpperClass <- data.frame(x=c("NotStopped","Bribes","Stopped"),
+                          y=c(14,6,7))
+UpperClass
+```
+This created a table for Upper Class, now to find the Standardised Residuals of these cells
+```{r}
+model.upper<- lm(y~x, data=UpperClass)
+summary(model.upper)
+```
+
+```{r}
+upper.stand.res <- rstandard(model.upper)
+upper.stand.res
+```
+The only outcome is NaN, I will try again with the lower class table, but this is not working and I don't know why, and I am running out of ideas.
+
+
+```{r}
+LowerClass <- data.frame(x=c("NotStopped","Bribes","Stopped"),
+                          y=c(7,7,1))
+LowerClass
+model.lower<- lm(y~x, data=LowerClass)
+summary(model.lower)
+lower.stand.res <- rstandard(model.lower)
+lower.stand.res
+```
+Again all I get is NaN. 
+
+Final attempt: using the formula for standardised residuals given by statisticshowto.com 
+Standardized residuals= (observed count - expected count) / sqrt(expected count)
+
+```{r}
+ResUNS= (FoUNS-FeUNS)/sqrt(FeUNS) #0.136
+ResUBR= (FoUBR-FeUBR)/sqrt(FeUBR) #-0.815
+ResUSG= (FoUSG-FeUSG)/sqrt(FeUSG) #0.819
+
+ResLNS= (FoLNS-FeLNS)/sqrt(FeLNS) #-0.183
+ResLBR=(FoLBR-FeLBR)/sqrt(FeLBR) #1.094
+ResLSG=(FoLSG-FeLSG)/sqrt(FeLSG) #-1.099
+```
+
+This did create standardised residuals which I can see. So I am going to plug these into the table I created earlier. 
+
+```{r}
+std.res.table <- matrix(c(0.136,-0.815,0.819,-0.183,1.094,-1.099), ncol=3, byrow=TRUE)
+colnames(std.res.table) <- c('Not Stopped', 'Bribe requested', 'Stopped/Given warning')
+rownames(std.res.table) <- c('Upper Class', 'Lower Class')
+std.res.table <- as.table(std.res.table)
+std.res.table
+```
+
+The question asked to calculate standardised residuals, so I did not see the need to continue and calculate adjusted residuals the formula for which is: 
+
+Adjusted residual = (observed – expected) / √[expected x (1 – row total proportion) x (1- column total proportion)]
+
+Question 1 (d)
+(d) How might the standardized residuals help you interpret the results?
+
+Standardised residuals would be useful to interpreting the results as they tell you which of the cells is more significant to creating your chi square result. It measures how different the cells' expected value is from the observed value. Small standardised residuals tell us that the prediction line is a good fit for the data. 
+
+QUESTION 2
+
+Create a data frame from the raw data given in the question
+
+Tried it like this: 
+
+economics <- data.frame(x=c("GP","village","reserved","female","irrigation","water"),
+                     y=c(1,2,1,1,0,10
+1,1,1,1,5,0
+2,2,1,1,2,2
+2,1,1,1,4,31
+3,2,0,0,0,0
+3,1,0,0,0,0
+4,2,0,0,4,7
+4,1,0,0,0,12
+5,2,0,0,0,28
+5,1,0,0,0,0
+6,2,0,0,0,23
+6,1,0,0,4,12
+7,2,0,0,0,0
+7,1,0,0,0,0
+8,2,1,1,4,41
+8,1,1,1,5,23
+9,2,0,0,0,0
+9,1,0,0,1,0
+10,2,0,0,9,12
+10,1,0,0,52,59
+11,2,0,0,20,70
+11,1,0,0,5,7
+12,2,0,0,0,2
+12,1,0,0,0,3
+13,2,0,0,32,23
+13,1,0,0,0,0
+14,2,1,1,0,1
+14,1,1,1,0,1
+15,2,1,1,2,0
+15,1,1,1,12,0
+16,2,0,0,0,5
+16,1,0,0,0,6
+17,2,0,0,1,10
+17,1,0,0,0,3
+18,2,1,1,1,7
+18,1,1,1,0,10
+19,2,0,0,0,41
+19,1,0,0,0,76
+20,2,1,1,0,0
+20,1,1,1,21,123
+21,2,0,0,1,1
+21,1,0,0,0,7
+22,2,0,0,0,0
+22,1,0,0,0,0
+23,2,0,0,0,2
+23,1,0,0,0,18
+24,2,0,0,7,18
+24,1,0,0,0,16
+25,2,1,1,21,340
+25,1,1,1,15,6
+26,2,0,1,5,5
+26,1,0,1,5,0
+27,2,1,1,40,309
+27,1,1,1,0,4
+28,2,0,0,0,5
+28,1,0,0,0,8
+29,2,0,0,0,9
+29,1,0,0,3,0
+30,2,1,1,7,31
+30,1,1,1,0,200
+31,2,0,0,0,20
+31,1,0,0,0,12
+32,2,0,0,0,28
+32,1,0,0,5,41
+33,2,0,0,0,0
+33,1,0,0,1,0
+34,2,1,1,0,10
+34,1,1,1,0,5
+35,2,0,0,0,2
+35,1,0,0,15,4
+36,2,0,0,3,59
+36,1,0,0,0,19
+37,2,1,1,0,8
+37,1,1,1,0,1
+38,2,0,0,0,10
+38,1,0,0,0,4
+39,2,0,0,0,16
+39,1,0,0,0,2
+40,2,0,0,0,5
+40,1,0,0,0,3
+41,2,0,0,0,10
+41,1,0,0,0,3
+42,2,0,0,0,9
+42,1,0,0,0,6
+43,2,1,1,0,1
+43,1,1,1,7,7
+44,2,1,1,2,25
+44,1,1,1,0,0
+45,2,0,0,0,11
+45,1,0,0,0,0
+46,2,1,1,1,13
+46,1,1,1,0,4
+47,2,0,0,0,17
+47,1,0,0,0,17
+48,2,1,1,0,5
+48,1,1,1,0,8
+49,2,1,1,10,78
+49,1,1,1,0,19
+50,2,0,0,0,2
+50,1,0,0,7,41
+51,2,1,1,6,0
+51,1,1,1,0,3
+52,2,0,0,0,8
+52,1,0,0,0,5
+53,2,0,0,0,21
+53,1,0,0,0,6
+54,2,0,0,15,26
+54,1,0,0,2,9
+55,2,0,0,10,8
+55,1,0,0,0,3
+56,2,0,0,0,0
+56,1,0,0,0,1
+57,2,1,1,0,9
+57,1,1,1,0,10
+58,2,0,0,0,11
+58,1,0,0,0,12
+59,2,1,1,0,0
+59,1,1,1,0,5
+60,2,0,0,0,24
+60,1,0,0,0,24
+61,2,0,0,0,0
+61,1,0,0,0,10
+62,2,1,1,0,0
+62,1,1,1,0,144
+63,2,1,1,0,2
+63,1,1,1,0,5
+64,2,0,0,0,6
+64,1,0,0,0,1
+65,2,1,1,0,43
+65,1,1,1,0,9
+66,2,1,1,0,38
+66,1,1,1,5,25
+67,2,0,0,0,11
+67,1,0,0,0,15
+68,2,0,0,0,0
+68,1,0,0,0,9
+69,2,0,0,0,30
+69,1,0,0,0,2
+70,2,1,1,0,98
+70,1,1,1,0,44
+71,2,0,0,0,1
+71,1,0,0,0,5
+72,2,1,1,0,2
+72,1,1,1,0,4
+73,2,0,0,0,10
+73,1,0,0,0,14
+74,2,0,0,0,0
+74,1,0,0,0,0
+75,2,0,0,0,3
+75,1,0,0,13,23
+76,2,0,0,0,1
+76,1,0,0,0,10
+77,2,0,0,0,5
+77,1,0,0,0,9
+78,2,1,1,0,6
+78,1,1,1,0,2
+79,2,0,0,0,0
+79,1,0,0,5,6
+80,2,1,1,0,8
+80,1,1,1,0,7
+81,2,0,0,0,0
+81,1,0,0,3,4
+82,2,0,0,3,11
+82,1,0,0,0,17
+83,2,1,1,0,0
+83,1,1,1,6,13
+84,2,0,1,1,9
+84,1,0,1,0,5
+85,2,0,0,0,0
+85,1,0,0,0,4
+86,2,0,1,0,12
+86,1,0,1,1,13
+87,2,0,0,0,4
+87,1,0,0,0,28
+88,2,0,0,1,1
+88,1,0,0,1,13
+89,2,0,0,0,8
+89,1,0,0,0,0
+90,2,1,1,0,3
+90,1,1,1,2,6
+91,2,1,1,0,3
+91,1,1,1,0,16
+92,2,0,1,0,54
+92,1,0,1,15,2
+93,2,0,0,0,8
+93,1,0,0,0,23
+94,2,0,0,1,9
+94,1,0,0,0,12
+95,2,1,1,0,11
+95,1,1,1,1,5
+96,2,0,0,0,16
+96,1,0,0,0,2
+97,2,1,1,0,9
+97,1,1,1,12,15
+98,2,1,1,0,12
+98,1,1,1,2,8
+99,2,0,0,6,13
+99,1,0,0,1,7
+100,2,1,1,5,2
+100,1,1,1,0,7
+101,2,0,0,2,20
+101,1,0,0,0,3
+102,2,1,1,1,60
+102,1,1,1,0,6
+103,2,0,0,0,3
+103,1,0,0,0,3
+104,2,0,0,0,22
+104,1,0,0,9,7
+105,2,0,0,0,13
+105,1,0,0,0,22
+106,2,0,0,1,8
+106,1,0,0,0,14
+107,2,0,1,1,2
+107,1,0,1,0,24
+108,2,0,0,0,13
+108,1,0,0,0,21
+109,2,1,1,0,5
+109,1,1,1,0,8
+110,2,0,0,0,24
+110,1,0,0,0,7
+111,2,1,1,0,18
+111,1,1,1,0,29
+112,2,0,0,0,26
+112,1,0,0,0,10
+113,2,0,0,16,40
+113,1,0,0,8,10
+114,2,1,1,14,7
+114,1,1,1,2,16
+115,2,1,1,0,7
+115,1,1,1,0,5
+116,2,0,0,10,12
+116,1,0,0,0,4
+117,2,0,0,0,20
+117,1,0,0,0,9
+118,2,1,1,2,71
+118,1,1,1,0,5
+119,2,0,1,18,4
+119,1,0,1,2,17
+120,2,0,0,47,47
+120,1,0,0,15,9
+121,2,0,0,0,25
+121,1,0,0,0,62
+122,2,0,0,8,58
+122,1,0,0,0,6
+123,2,1,1,0,5
+123,1,1,1,0,15
+124,2,0,0,4,8
+124,1,0,0,0,12
+125,2,1,1,0,32
+125,1,1,1,0,17
+126,2,0,0,2,10
+126,1,0,0,8,4
+127,2,0,0,0,3
+127,1,0,0,0,3
+128,2,1,1,2,16
+128,1,1,1,15,3
+129,2,1,1,5,86
+129,1,1,1,24,11
+130,2,1,1,0,21
+130,1,1,1,0,5
+131,2,0,0,90,54
+131,1,0,0,34,8
+132,2,0,0,0,19
+132,1,0,0,0,4
+133,2,0,0,8,77
+133,1,0,0,0,44
+134,2,1,1,1,4
+134,1,1,1,6,4
+135,2,1,1,0,26
+135,1,1,1,0,10
+136,2,0,0,0,21
+136,1,0,0,20,46
+137,2,0,0,6,30
+137,1,0,0,0,20
+138,2,0,0,3,10
+138,1,0,0,2,2
+139,2,0,0,5,90
+139,1,0,0,83,155
+140,2,0,0,1,23
+140,1,0,0,0,8
+141,2,1,1,9,20
+141,1,1,1,4,22
+142,2,0,1,2,25
+142,1,0,1,0,20
+143,2,1,1,3,21
+143,1,1,1,32,59
+144,2,0,0,3,8
+144,1,0,0,0,1
+145,2,0,1,0,25
+145,1,0,1,0,4
+146,2,0,0,0,7
+146,1,0,0,0,40
+147,2,1,1,2,7
+147,1,1,1,0,0
+148,2,0,0,0,19
+148,1,0,0,2,3
+149,2,0,0,0,40
+149,1,0,0,0,2
+150,2,1,1,1,17
+150,1,1,1,0,9
+151,2,0,0,4,7
+151,1,0,0,1,42
+152,2,0,0,0,1
+152,1,0,0,1,3
+153,2,0,0,0,3
+153,1,0,0,0,66
+154,2,0,0,0,6
+154,1,0,0,30,35
+155,2,0,0,3,51
+155,1,0,0,10,13
+156,2,0,0,0,7
+156,1,0,0,0,16
+157,2,0,0,0,20
+157,1,0,0,0,21
+158,2,0,0,0,3
+158,1,0,0,8,4
+159,2,1,1,0,11
+159,1,1,1,0,29
+160,2,1,1,0,2
+160,1,1,1,5,5
+161,2,0,0,0,2
+161,1,0,0,0,11)
+
+```
+This did not work. 
+
+
+```{r}
+economics<-read.csv("https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv")
+str(economics)
+```
+
+Q2(a)
+(a) State a null and alternative (two-tailed) hypothesis.
+
+Ho= Villages with reservations for women will have a lower number of new or repaired drinking water facilities
+Ha = Villages with reservations for women will have a higher number of new or repaired drinking water
+
+Q2(b)
+(b) Run a bivariate regression to test this hypothesis in R (include your code!).
+
+Regression line using the instruction code given in tutorial four.
+Dependent variable: water
+Independent variable: reserved
+
+Need to change reserved to binary variable as data is recognising it as an integer
+
+
+```{r}
+
+plot(economics$reserved, economics$water,
+    main = "Scatter Plot of Two variables",
+    xlab = "Predictor Variable on X axis",
+    ylab = "Target Variable on y axis")
+Reserved=as.factor(economics$reserved)
+
+lm(economics$water ~ Reserved)
+#tilde because water measure is dependent on reservation for female politicians
+abline(lm(economics$water ~ Reserved), col ="red")
+```
+
+Q2(c)
+(c) Interpret the coefficient estimate for reservation policy.
+
+14.738 (Intercept) is the value of the explained variable (water) while 9.252 is how much the measure of the water variable changes with every one unit increase in the explanatory variable (reserved). 
+Therefore, for every village with reservations for women, the number of drinking water facilities in villages will increase by 9.252. 
+This means that we can reject the null hypothesis (Ho) and accept the alternative hypothesis (Ha). 
+
+QUESTION 3
+
+Q3 (a)
+1. Import the data set and obtain summary statistiscs and examine the distribution of the overall lifespan of the fruitflies.
+
+Load dataset, use the str and summary functions to see the information inside the data set. I got the website address from the ASDS group chat students have formed, somebody found it online, because data(fruitfly) would not work for any of us. 
+```{r}
+fruitfly<- read.csv("https://www.zoology.ubc.ca/~bio501/R/data/fruitflies.csv")
+str(fruitfly)
+summary(fruitfly)
+```
+Fruit flies in this dataset lived at least 16 days and at most 97 days. The median lifespan was a 58 days which is very close to the mean lifespan of 57.44 days which may indicate a normal distribution. 
+Which is reinforced by the below histogram.
+```{r}
+hist(fruitfly$longevity.days, col="pink")
+```
+
+Q3(b)
+2. Plot lifespan vs thorax. Does it look like there is a linear relationship? Provide the plot. What is the correlation coefficient between these two variables?
+
+Plot lifespan vs thorax
+
+Made a ggplot
+```{r}
+ggplot(aes(longevity.days, thorax.mm), data=fruitfly) +
+  geom_point()
+```
+Faster plot:
+```{r}
+plot(fruitfly$longevity.days, fruitfly$thorax.mm, col="blue")
+```
+
+There does appear to be a positive linear relationship between lifespan and thorax length. 
+
+Trying to find correlation coefficients but do not know how to do that with ggplot so going back to basic plotting code for R and using that. 
+
+```{r}
+cor(fruitfly$longevity.days, fruitfly$thorax.mm) #0.6364835
+```
+Correlation co-efficient = 0.6364835
+
+O.64 is enough for me to consider the relationship between lifespan and thorax length to be significant. The thorax distribution looks a bit skewed to the left. 
+
+
+Q3(c)
+3. Regress lifespan on thorax. Interpret the slope of the fitted model.
+
+Create a regression
+
+```{r}
+regress <- lm(longevity.days ~ thorax.mm, data = fruitfly)
+summary(regress)
+```
+
+For every unit that longevity increases there is an increase in thorax length by 144mm according to the coefficients of this regression. To support my understanding of the regression I will visualise it in a graph.
+
+Visualise in a graph
+```{r}
+ggplot(aes(longevity.days, thorax.mm), data=fruitfly) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x)
+```
+There is a an observable positive relationship between lifespan and thorax. A relatively steep positive line. 
+
+
+
+Q3(d)
+4. Test for a significant linear relationship between lifespan and thorax. Provide and interpret your results of your test.
+
+Test for significant linear relationship
+
+To test this relationship I will need to extract p-values from  the regression to determine significance. 
+
+First I need to create a null hypothesis. This hypothesis will be that the slope (beta) of the regression is 0.
+Ho= beta=0
+Ha= beta not = 0
+
+I willl test this by applying the lm() function to the regression and extracting the p-value from the call. 
+```{r}
+regress.lm <- lm(longevity.days ~ thorax.mm , data = fruitfly)
+summary(regress.lm)
+```
+The p-value from this is:
+p-value: 1.497e-15
+
+I did have to google what this was scientific notation for and as a real number 1.497e-15 = 0.000000000000001497
+
+As the p-value is significantly lower than the common value of alpha=0.05, we can reject the null hypothesis. 
+
+Therefore there value of beta in this regression is highly unlikely to be 0, indicating that there is a significant relationship between thorax length and lifespan in fruit flies.
+
+
+Q3(e)
+5. Provide the 90% confidence interval for the slope of the fitted model.
+
+• Use the formula of confidence interval.
+Tried looking up formulas for coefficients but all require the mean and when I try to find the mean in R all I get is "NA"
+```{r}
+summary(regress.lm)
+length(regress.lm)
+n = 12
+mean(regress.lm) 
+```
+One of the classmates gave the formula as conf=slope + margin of error
+margin of error = critical value x standard error
+
+Slope = 0.0028068 (coefficient estimate for x)
+Margin of error = 
+
+Critical value for 90% 
+Alpha level = 100%-90% = 10% = 0.1
+Alpha level divided by 2 = two-tailed = 0.05
+0.05 from 1 = 0.95
+Z table -> 1.645 
+
+Standard error thorax: 15.77
+Standard error intercept (when thorax=0): 13.00
+
+```{r}
+#Confidence Level for thorax: 
+thoraxconf.upper = 144.33+ (1.645*15.77)
+thoraxconf.lower= 144.33 - (1.645*15.77)
+cat("90% confidence interval for thorax is", thoraxconf.lower, ",", thoraxconf.upper, "\n")
+```
+You can find the confidence intervals in the output for the cat code above. 
+Need to find conf for the slope which is beta. 
+Longevity is the beta in the regression.
+
+Answer: 90% confidence interval for thorax is (118.3884 , 170.2717) 
+Note: there could be error due to rounding
+
+• Use the function confint() in R .
+
+```{r}
+confint(regress.lm)
+```
+Thorax: 113.11646 , 175.5497
+
+Q3(f)
+6. Use the predict() function in R to (1) predict an individual fruitfly’s lifespan when thorax=0.8 and (2) the average lifespan of fruitflies when thorax=0.8 by the fitted model. This requires that you compute prediction and confidence intervals. What are the expected values of lifespan? What are the prediction and confidence intervals around the expected values?
+
+What is the difference between predicted and fitted models? 
+
+?predict()
+
+1) predict 
+```{r}
+new.data=data.frame(thorax.mm=0.8)
+predict.1=predict(regress.lm, newdata=new.data)
+predict.1
+```
+predict.1= 54.4
+When thorax length is 0.8mm, the fruit fly is predicted to live to 54.4 days old. 
+
+2) fitted model 
+```{r}
+fitted = fitted(regress.lm)
+dat = cbind(fruitfly$thorax.mm, unname(fitted))
+dat
+colnames(dat) = c("Thorax.mm", "Fitted")
+dat = as.data.frame(dat)
+dat.08 = dat[which(dat$Thorax == 0.8), ]
+
+mean(dat.08$Fitted)
+```
+54.41478
+Find prediction and confidence intervals 
+```{r}
+predict(regress.lm, newdata = new.data, interval = 'confidence')
+```
+fit      lwr      upr
+1 54.41478 51.91932 56.91024
+
+```{r}
+predict(regress.lm, newdata = new.data, interval = 'prediction')
+```
+       fit      lwr      upr
+1 54.41478 27.37542 81.45414
+
+Prediction interval takes into account the variability and error of the estimators so it is wider.
+
+Average lifespan is the same for both confidence and prediction interval. Prediction interval has larger interval so expected lifespan is between 27 days and 81 days. 
+
+Q3(g)
+7. For a sequence of thorax values, draw a plot with their fitted values for lifespan, as well as the prediction intervals and confidence intervals.
+
+Create a sequence of the thorax values for the new plot
+```{r}
+index = seq(from = 0, to = 125, by= 5)
+#takes every fifth number
+s= dat[index,]
+```
+
+```{r}
+ndata = s[,1]
+d = unname(ndata)
+conf = predict(regress.lm, newdata =data.frame(thorax.mm=d), interval="confidence")
+pred = predict(regress.lm, newdata =data.frame(thorax.mm=d), interval="prediction")
+pred
+```
+
+Plot the graph and label it 
+```{r}
+plot(s$Thorax.mm, s$Fitted, pch=20, col="goldenrod",
+main="Sequence of thorax values vs fitted lifespan",
+xlab= "Thorax length in mm",
+ylab= "Fitted Lifespan")
+```
+
+Prediction interval and confidence interval need to add lines
+```{r}
+plot(s$Thorax.mm, s$Fitted, pch=20, col="goldenrod",
+main="Sequence of thorax values vs fitted lifespan",
+xlab= "Thorax length in mm",
+ylab= "Fitted Lifespan")
+lines(s$Thorax.mm, pred[, "lwr"], lty=3, col="red")
+lines(s$Thorax.mm, pred[, "upr"], lty=3, col="red")
+```
+
+The lines are really weird. Need to add limits? 
+```{r}
+plot(s$Thorax.mm, s$Fitted, pch=20, col="goldenrod",
+main="Sequence of thorax values vs fitted lifespan",
+xlab= "Thorax length in mm",
+ylab= "Fitted Lifespan",
+xlim= range(0.7, 0.98),
+ylim= range(10, 101))
+lines(s$Thorax.mm, pred[, "lwr"], lty=3, col="red")
+lines(s$Thorax.mm, pred[, "upr"], lty=3, col="red")
+```
+
+Red lines tracking prediction interval for the fitted values.
+
+```{r}
+plot(s$Thorax.mm, s$Fitted, pch=20, col="goldenrod",
+main="Sequence of thorax values vs fitted lifespan",
+xlab= "Thorax length in mm",
+ylab= "Fitted Lifespan",
+xlim= range(0.7, 0.98),
+ylim= range(10, 101))
+lines(s$Thorax.mm, pred[, "lwr"], lty=3, col="red")
+lines(s$Thorax.mm, pred[, "upr"], lty=3, col="red")
+lines(s$Thorax.mm, conf[, "lwr"], lty=3, col="blue")
+lines(s$Thorax.mm, conf[, "upr"], lty=3, col="blue")
+```
+Blue lines are the confidence intervals. 
+
