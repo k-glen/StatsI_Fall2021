@@ -1,0 +1,213 @@
+---
+title: "PS03_Answers_KG"
+author: "kg"
+date: "11/9/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+
+rm(list=ls()) 
+
+# install.packages("readxl")
+
+library(readxl)
+incumbents_subset_2 <- read_excel("/Users/Kate/Library/Mobile Documents/com~apple~Numbers/Documents/incumbents_subset 2.xlsx")
+#View(incumbents_subset_2)
+
+data=incumbents_subset_2[, -1] #first row then column, - means delete
+#the column that I deleted was just a repetition of the column labelled X
+
+rm(incumbents_subset_2)
+#Can remove incumbents
+```
+## QUESTION 1
+We are interested in knowing how the difference in campaign spending between incumbent and challenger affects the incumbent’s vote share.
+a. Run a regression where the outcome variable is voteshare and the explanatory variable is difflog.
+
+Outcome variable = voteshare 
+explanatory variable = difflog
+y~x
+```{r 1a}
+#x explains y, and x = explanatory
+reg1=lm(data = data, voteshare ~ difflog)
+```
+b. Make a scatterplot of the two variables and add the regression line.
+```{r 1b}
+library(ggplot2)
+ggplot(data, aes(difflog, voteshare)) +
+  geom_point(alpha = 0.5) + #add a scatterplot
+  geom_smooth(method = "lm")
+```
+3. Save the residuals of the module in a separate object.
+
+```{r 1c}
+summary(data$voteshare)
+#voteshare is a value between 0 and 1 so assuming percentage
+
+plot1=ggplot(data, aes(difflog, voteshare)) +
+  geom_point(alpha = 0.5) + #add a scatterplot
+  geom_smooth(method = "lm")
+
+residuals1=summary(reg1)$residuals
+
+```
+4. Write the prediction equation.
+```{r 1d}
+summary(reg1)
+```
+
+$\beta_{0} = 0.579031 $
+$\beta_{1} = 0.041666 $
+$x_{1} = difflog$
+$y= voteshare$
+
+$\hat{y} = \beta_{0} + \beta_{1}x_{1}$
+$\hat{y} = 0.579031 + 0.041666x_{1} $
+
+## QUESTION 2
+(## makes title)
+We are interested in knowing how the difference between incumbent and challenger’s spend- ing and the vote share of the presidential candidate of the incumbent’s party are related.
+
+a. Run a regression where the outcome variable is presvote and the explanatory variable is difflog.
+
+outcome = presvote
+explanatory = difflog
+```{r 2a}
+reg2=lm(data = data, presvote ~ difflog)
+```
+
+b. Make a scatterplot of the two variables and add the regression line.
+```{r 2b}
+plot2= ggplot(data, aes(difflog, presvote)) +
+  geom_point(alpha = 0.5) + #add a scatterplot
+  geom_smooth(method = "lm")
+plot2
+```
+
+c. Save the residuals of the model in a separate object.
+```{r 2c}
+residuals2=summary(reg2)$residuals
+```
+4. Write the prediction equation.
+```{r 2d}
+summary(reg2)
+```
+$\beta_{0} =  0.507583 $
+$\beta_{1} = 0.023837 $
+$x_{1} = difflog$
+$y = presvote$
+
+$\hat{y} = \beta_{0} + \beta_{1}x_{1}$
+$\hat{y} =   0.507583 + 0.023837x_{1}$
+
+## QUESTION 3
+We are interested in knowing how the vote share of the presidential candidate of the incum- bent’s party is associated with the incumbent’s electoral success.
+1. Run a regression where the outcome variable is voteshare and the explanatory variable is presvote.
+```{r 3a}
+reg3<- lm(data = data,  voteshare ~ presvote)
+```
+
+b. Make a scatterplot of the two variables and add the regression line.
+```{r 3b}
+plot3<- ggplot(data, aes(presvote, voteshare)) +
+  geom_point(alpha = 0.5) + #add a scatterplot
+  geom_smooth(method = "lm") #add line
+plot3
+```
+
+c. Write the prediction equation.
+```{r 3c}
+summary(reg3)
+```
+$\beta_{0} =  0.441330 $
+$\beta_{1} = 0.388018 $
+$x_{1} = presvote$
+$y = voteshare$
+
+$\hat{y} = \beta_{0} + \beta_{1}x_{1}$
+$\hat{y} =   0.441330 + 0.388018x_{1}$
+
+## QUESTION 4
+The residuals from part (a) tell us how much of the variation in voteshare is not explained by the difference in spending between incumbent and challenger. The residuals in part (b) tell us how much of the variation in presvote is not explained by the difference in spending between incumbent and challenger in the district.
+
+a. Run a regression where the outcome variable is the residuals from Question 1 and the explanatory variable is the residuals from Question 2.
+
+outcome = residuals1
+explanatory = residuals2 
+```{r 4a}
+reg4<-lm(residuals1 ~ residuals2)
+reg4
+```
+
+b. Make a scatterplot of the two residuals and add the regression line.
+```{r 4b}
+plot4<- ggplot(data, aes(residuals2, residuals1)) +
+  geom_point(alpha = 0.5) + #add a scatterplot
+  geom_smooth(method = "lm") #add line
+plot4
+```
+
+c. Write the prediction equation.
+```{r 4c}
+summary(reg4)
+```
+$\beta_{0} =  0.441330 $
+$\beta_{1} = 0.388018 $
+$x_{1} = presvote$
+$y = voteshare$
+
+$\hat{y} = \beta_{0} + \beta_{1}x_{1}$
+$\hat{y} =   0.441330 + 0.388018x_{1}$
+
+## QUESTION 5
+What if the incumbent’s vote share is affected by both the president’s popularity and the difference in spending between incumbent and challenger?
+
+a. Run a regression where the outcome variable is the incumbent’s voteshare and the explanatory variables are difflog and presvote.
+
+outcome = voteshare
+explanatory = difflog , presvote
+
+```{r 5a}
+reg5= lm(data = data,  voteshare ~ difflog+presvote)
+```
+
+b. Write the prediction equation.
+```{r 5b}
+reg5$coefficients
+```
+$\beta_{0} =  0.44864422 $
+$\beta_{1} = 0.03554309 $
+$\beta_{2} = 0.25687701 $
+$x_{1} = difflog$
+$x_{2} = presvote$
+$y = voteshare$
+
+$\hat{y} = \beta_{0} + \beta_{1}x_{1} +\beta_{2}x_{2}$
+$\hat{y} =   0.44864422 + 0.03554309\times x_{1} + 0.25687701\times x_{2}$
+
+c. What is it in this output that is identical to the output in Question 4? Why do you think this is the case?
+Look at the summary to get information about the lines.
+```{r}
+summary(reg4)
+```
+```{r}
+summary(reg5)
+```
+I tried plotting to see what information visualisation would give me. 
+```{r}
+par(mfrow=c(1,2))
+
+plot(reg4)
+
+plot(reg5)
+```
+The residuals of reg4 and reg5 are the same.
+I think the correlation is related to the sum of least squares rule in statistical analysis, which says that the line of best fit in the data minimises the sum of the squared residuals. 
+```{r}
+sum(resid(reg4)^2)
+sum(resid(reg5)^2)
+```
+Since they both are equal then they are equally well-fitted to the line. This suggests that the residuals. I think this is because a multivariate analysis of voteshare, presvote, and difflog is a faster way of getting a line of best fit, and the slower way is doing the lines individually as was done in Question 1 and Question 2. 
